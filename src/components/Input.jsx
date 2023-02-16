@@ -25,20 +25,25 @@ const Input = () => {
   const API_URL = `https://dictionaryapi.com/api/v3/references/learners/json/${data}?key=${DICTIONARY_KEY}`;
 
   useEffect(() => {
+    const abortCont = new AbortController();
     async function fetchData() {
       setLoading(true);
       try {
-        const response = await fetch(API_URL);
+        const response = await fetch(API_URL, { signal: abortCont.signal });
         const medicalData = await response.json();
         setResults(medicalData[0]);
       } catch (err) {
+        if (err.name === "AbortError") {
+          console.log("successfully aborted");
+        }
         setError(err.message);
-        setError("");
       } finally {
+        setError("");
         setLoading(false);
       }
     }
     fetchData();
+    return () => abortCont.abort();
   }, [data]);
 
   return (

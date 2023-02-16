@@ -17,10 +17,7 @@ const DataLists = ({ results }) => {
       {!results.fl && (
         <div>
           <h1 className="font-bold">No Definitions found</h1>
-          <p>
-            You can try the search again at later time or head to the web
-            instead
-          </p>
+          <p>You can search again later or head to the web instead</p>
         </div>
       )}
     </div>
