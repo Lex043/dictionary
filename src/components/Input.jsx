@@ -1,14 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import randomTerm from "../utils/randomTerms";
 import Spinner from "./Spinner";
 import DataLists from "./DataLists";
+import useSWR from "swr";
+import axios from "axios";
 
 const Input = () => {
   const [text, setText] = useState("");
   const [data, setData] = useState(randomTerm());
-  const [results, setResults] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   const DICTIONARY_KEY = import.meta.env.VITE_REACT_APP_DICTIONARY_KEY;
 
@@ -24,27 +23,10 @@ const Input = () => {
 
   const API_URL = `https://dictionaryapi.com/api/v3/references/learners/json/${data}?key=${DICTIONARY_KEY}`;
 
-  useEffect(() => {
-    const abortCont = new AbortController();
-    async function fetchData() {
-      setLoading(true);
-      try {
-        const response = await fetch(API_URL, { signal: abortCont.signal });
-        const medicalData = await response.json();
-        setResults(medicalData[0]);
-      } catch (err) {
-        if (err.name === "AbortError") {
-          console.log("successfully aborted");
-        }
-        setError(err.message);
-      } finally {
-        setError("");
-        setLoading(false);
-      }
-    }
-    fetchData();
-    return () => abortCont.abort();
-  }, [data]);
+  const fetcher = async (url) =>
+    await axios.get(url).then((res) => res.data[0]);
+
+  const { data: results, error, isLoading } = useSWR(API_URL, fetcher);
 
   return (
     <section className="mt-6 mx-auto font-mono w-4/5 lg:w-3/6">
@@ -64,7 +46,7 @@ const Input = () => {
         </button>
       </form>
 
-      {loading ? <Spinner /> : results && <DataLists results={results} />}
+      {isLoading ? <Spinner /> : results && <DataLists results={results} />}
 
       {error && <div className="font-bold text-center">{error}</div>}
     </section>
